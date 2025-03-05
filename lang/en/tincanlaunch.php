@@ -28,9 +28,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['modulename'] = 'xAPI Launch Link';
-$string['modulenameplural'] = 'xAPI Launch Links';
-$string['modulename_help'] = 'A plug in for Moodle that allows the launch of xAPI (TinCan) content which is then tracked to a separate LRS.';
+// -- PLUGIN NAME OVERRIDES --
+$string['pluginname'] = 'xApi Tincan Launch - CUSTOM';
+$string['pluginadministration'] = 'xApi Tincan Launch - CUSTOM administration';
+$string['modulename'] = 'xApi Tincan Launch - CUSTOM';
+$string['modulenameplural'] = 'xApi Tincan Launch - CUSTOM activities';
+$string['modulename_help'] = 'A plugin for Moodle that allows the launch of xAPI (TinCan) content which is then tracked to a separate LRS. 
+Fork: https://github.com/meikdomachowski/moodle-mod_custom_tincanlaunch';
 
 // Start Default LRS Admin Settings.
 $string['tincanlaunchlrsfieldset'] = 'Default values for xAPI Launch Link activity settings';
@@ -103,8 +107,8 @@ $string['badarchive'] = 'You must provide a valid zip file';
 $string['nomanifest'] = 'Incorrect file package - missing tincan.xml';
 
 $string['tincanlaunch'] = 'xAPI Launch Link';
-$string['pluginadministration'] = 'xAPI Launch Link administration';
-$string['pluginname'] = 'xAPI Launch Link';
+$string['pluginadministration'] = 'xApi Tincan Launch - CUSTOM administration';
+$string['pluginname'] = 'xApi Tincan Launch - CUSTOM';
 
 // Verb completion settings.
 $string['completionverb'] = 'Verb';

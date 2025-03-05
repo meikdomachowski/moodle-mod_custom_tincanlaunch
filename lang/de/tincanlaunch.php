@@ -28,12 +28,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['tincanlaunchviewfirstlaunched'] = 'Zun&auml;chst startete';
-$string['tincanlaunchviewlastlaunched'] = 'Letzte gestartet';
-$string['tincanlaunchviewlaunchlinkheader'] = 'Start Link';
-$string['tincanlaunchviewlaunchlink'] = 'Start';
+// -- PLUGIN NAME OVERRIDES --
+$string['pluginname'] = 'xApi Tincan Launch - CUSTOM';
+$string['pluginadministration'] = 'xApi Tincan Launch - CUSTOM Verwaltung';
+$string['modulename'] = 'xApi Tincan Launch - CUSTOM';
+$string['modulenameplural'] = 'xApi Tincan Launch - CUSTOM-Aktivitäten';
+$string['modulename_help'] = 'Ein Plugin für Moodle, das den Start von xAPI (TinCan) Inhalten ermöglicht, die an ein separates LRS gesendet werden.
+Fork: https://github.com/meikdomachowski/moodle-mod_custom_tincanlaunch';
 
-$string['tincanlaunch_completed'] = 'Erleben Sie komplett!';
+// Bestehende deutsche Strings.
+$string['tincanlaunchviewfirstlaunched'] = 'Zun&auml;chst gestartet';
+$string['tincanlaunchviewlastlaunched'] = 'Zuletzt gestartet';
+$string['tincanlaunchviewlaunchlinkheader'] = 'Start-Link';
+$string['tincanlaunchviewlaunchlink'] = 'Starten';
+
+$string['tincanlaunch_completed'] = 'Erlebnis abgeschlossen!';
 $string['tincanlaunch_progress'] = 'Versuch im Gange';
 $string['tincanlaunch_attempt'] = 'Neuer Versuch';
 $string['tincanlaunch_notavailable'] = 'Das Learning Record Store ist nicht verf&uuml;gbar. Bitte wenden Sie sich an den Systemadministrator.';
