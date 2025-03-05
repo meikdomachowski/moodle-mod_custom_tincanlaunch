@@ -118,7 +118,8 @@ class RemoteLRS implements LRSInterface
             }
         }
         if (isset($options['params']) && count($options['params']) > 0) {
-            $url .= '?' . http_build_query($options['params'], null, '&', PHP_QUERY_RFC3986);
+            // FIX for LearningLocker
+            $url .= '?' . http_build_query($options['params'], '', '&', PHP_QUERY_RFC3986);
         }
 
         if (($method === 'PUT' || $method === 'POST') && isset($options['content'])) {
@@ -137,19 +138,11 @@ class RemoteLRS implements LRSInterface
         // normal handling
         //
         set_error_handler(
-            function ($errno, $errstr, $errfile, $errline, array $errcontext) {
-                // "!== false" is intentional. strpos() can return 0, which is falsey, but returning
-                // 0 matches our "true" condition. Using strict equality to avoid that confusion.
+            function ($errno, $errstr, $errfile, $errline) {
+                // FIX for LearningLocker
                 if ($errno == E_NOTICE && strpos($errstr, 'Array to string conversion') !== false) {
-                    // The way HHVM handles array comparison results in a Notice being raised in fopen(),
-                    // but that's expected here and won't affect functionality. We don't want to throw
-                    // those Notices as Errors. Checking if this is a Notice before looking at the
-                    // contents of the string to hopefully minimize any performance impact here.
-                    // See https://github.com/facebook/hhvm/issues/1561 for the "won't fix" from HHVM.
-
                     return true;
                 }
-
                 throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
             }
         );
@@ -158,11 +151,30 @@ class RemoteLRS implements LRSInterface
         $response = null;
 
         try {
-            $context = stream_context_create(array( 'http' => $http ));
+            // ONLY FOR DEV to allow sending statements via http
+            // $contextOptions = [
+            //     'http' => $http,
+            //     'ssl'  => [
+            //         'verify_peer'      => false,
+            //         'verify_peer_name' => false,
+            //         'allow_self_signed' => true,
+            //     ],
+            // ];
+            
+            // $context = stream_context_create($contextOptions);
+            // $fp = fopen($url, 'rb', false, $context);
+            // 
+            //
+
+            $context = stream_context_create(['http' => $http]);
             $fp = fopen($url, 'rb', false, $context);
 
+
             if (! $fp) {
-                $content = "Request failed: $php_errormsg";
+            // $php_errormsg -> error_get_last() abfragen:
+            $lastError = error_get_last();
+            $msg = ($lastError && isset($lastError['message'])) ? $lastError['message'] : 'Unknown reason';
+            $content = "Request failed: {$msg}";
             }
         }
         catch (\ErrorException $ex) {
