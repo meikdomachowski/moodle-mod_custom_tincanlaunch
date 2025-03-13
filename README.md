@@ -1,7 +1,14 @@
 xAPI Launch Link
 ============
 
-A Moodle plug-in that allows the launch of xAPI content using a separate LRS. 
+A Fork of Moodle plug-in that allows the launch of xAPI content using a separate LRS. 
+
+## Fork Differences
+This fork introduces the following changes compared to the original version:
+* The actor's unique identifier is always hashed to create the "mbox_sha1sum". If the user's email is available, it is used (prefixed with "mailto:"); if not, the username is used directly.
+* Instead of using the global site URL for the actor's account, the "homePage" is now set to the specific Moodle course URL, ensuring a more contextual association with the course.
+* These modifications enhance user privacy by preventing the exposure of clear text email addresses and improve consistency by linking the actor directly to the course context.
+* Optimized for Learning Locker 7
 
 ## Background
 The plugin is called tincanlaunch because of the original research project called 'Project Tin Can'. At this point in time, the more commonly heard names of Tincan are the 'Experience API' and 'xAPI'. More details can be found here: https://xapi.com/tin-can-experience-api-xapi
@@ -40,6 +47,13 @@ There are appearance settings that allow various launch settings.
 * Multiple Registrations - This differs from 'Single Registrations' in that the user will be able to see and launch all of their prior registrations as well as launch a new registration.
 
 The settings for this module all have help text which can be accessed by clicking the '?' icon next to that setting. 
+
+### Actor Construction Update
+In a recent update the construction of the TinCan Actor has been modified for enhanced privacy and consistency:
+* The unique identifier for the actor is now derived from the user's email (prefixed with "mailto:") if available; otherwise, the username is used.
+* This unique identifier is then hashed using SHA1 to generate the "mbox_sha1sum", ensuring that sensitive data (like the email address) is not exposed in clear text.
+* The actor's account information is now configured with "homePage" set to the Moodle course URL (constructed using the course ID) and "name" set to the username.
+
 
 ## Using the plugin
 Depending on the settings chosen during the activity setup, the learner will either directly launch the content (Simplified Launch) or be brought to a Registrations page (Single/Multiple Registrations).
