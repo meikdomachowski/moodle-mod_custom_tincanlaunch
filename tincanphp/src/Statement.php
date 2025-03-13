@@ -41,16 +41,12 @@ class Statement extends StatementBase
     protected $attachments;
 
     public function __construct() {
-        call_user_func_array('parent::__construct', func_get_args());
-
+        // FIX: Replaced call_user_func_array with direct parent::__construct call using the spread operator
+        // to avoid deprecated "parent" usage in newer PHP versions.
+        parent::__construct(...func_get_args());
+    
         if (func_num_args() == 1) {
             $arg = func_get_arg(0);
-
-            //
-            // 'object' isn't in the list of properties so ._fromArray doesn't
-            // pick it up correctly, but 'target' and 'object' shouldn't be in
-            // the args at the same time, so handle 'object' here
-            //
             if (isset($arg['object'])) {
                 $this->setObject($arg['object']);
             }
