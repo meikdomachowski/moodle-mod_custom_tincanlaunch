@@ -192,6 +192,11 @@ function tincanlaunch_get_coursemodule_info($coursemodule) {
         $result->customdata['customcompletionrules']['tincancompletioexpiry'] = $tincanlaunch->tincanexpiry;
     }
 
+    // Add the launch URL to customdata so it appears in the webservice output.
+    if (!empty($tincanlaunch->tincanlaunchurl)) {
+        $result->customdata['launchurl'] = $tincanlaunch->tincanlaunchurl;
+    }
+
     return $result;
 }
 
@@ -405,21 +410,27 @@ function tincanlaunch_pluginfile($course, $cm, $context, $filearea, $args, $forc
  * @return array array of file content
  */
 function tincanlaunch_export_contents($cm, $baseurl) {
-    $contents = array();
+    global $CFG;
+
+    $contents = [];
     $context = context_module::instance($cm->id);
 
     $fs = get_file_storage();
     $files = $fs->get_area_files($context->id, 'mod_tincanlaunch', 'package', 0, 'sortorder DESC, id ASC', false);
 
     foreach ($files as $fileinfo) {
-        $file = array();
-        $file['type'] = 'file';
-        $file['filename']     = $fileinfo->get_filename();
-        $file['filepath']     = $fileinfo->get_filepath();
-        $file['filesize']     = $fileinfo->get_filesize();
+        $file = [];
+        $file['type']     = 'file';
+        $file['filename'] = $fileinfo->get_filename();
+        $file['filepath'] = $fileinfo->get_filepath();
+        $file['filesize'] = $fileinfo->get_filesize();
         $fileurl = new moodle_url(
-            $baseurl . '/'.$context->id.'/mod_tincanlaunch/package'. $fileinfo->get_filepath().$fileinfo->get_filename());
-        $file['fileurl']      = $fileurl;
+            $CFG->wwwroot . '/webservice/pluginfile.php/' .
+            $context->id . '/mod_tincanlaunch/package' .
+            $fileinfo->get_filepath() .
+            $fileinfo->get_filename()
+        );
+        $file['fileurl']      = $fileurl->out(false);
         $file['timecreated']  = $fileinfo->get_timecreated();
         $file['timemodified'] = $fileinfo->get_timemodified();
         $file['sortorder']    = $fileinfo->get_sortorder();
