@@ -625,49 +625,45 @@ function tincanlaunch_get_statements($url, $basiclogin, $basicpass, $version, $a
 }
 
 /**
- * Build a TinCan Agent based on the current user.
+ * Build a TinCan Actor based on the current user.
  *
- * @param object $instance tincanlaunch instance
- * @param object $user User object
- * @return TinCan $agent Agent
+ * @param object $instance tincanlaunch instance (expects $instance->course to contain the course ID)
+ * @param object $user (optional) If not provided, $USER is used.
+ * @return TinCan\Agent Actor with mbox_sha1sum and account.homePage set to the Moodle course URL
  */
 function tincanlaunch_getactor($instance, $user = false) {
     global $USER, $CFG;
 
-    // If Moodle cron didn't initiate this, user global $USER.
+    // Use the current logged-in user if no user is provided.
     if ($user == false) {
         $user = $USER;
     }
 
-    $settings = tincanlaunch_settings($instance);
-
-    if ($user->idnumber && $settings['tincanlaunchcustomacchp']) {
-        $agent = array(
-            "name" => fullname($user),
-            "account" => array(
-                "homePage" => $settings['tincanlaunchcustomacchp'],
-                "name" => $user->idnumber
-            ),
-            "objectType" => "Agent"
-        );
-    } else if ($user->email && $settings['tincanlaunchuseactoremail']) {
-        $agent = array(
-            "name" => fullname($user),
-            "mbox" => "mailto:".$user->email,
-            "objectType" => "Agent"
-        );
+    // Create a unique identifier using the user's email if available; otherwise, use the username.
+    if (!empty($user->email)) {
+        $uniqueid = 'mailto:' . $user->email; 
     } else {
-        $agent = array(
-            "name" => fullname($user),
-            "account" => array(
-                "homePage" => $CFG->wwwroot,
-                "name" => $user->username
-            ),
-            "objectType" => "Agent"
-        );
+        $uniqueid = $user->username;
     }
 
-    return new \TinCan\Agent($agent);
+    // Generate the SHA1 hash of the unique identifier.
+    $hash = sha1($uniqueid);
+
+    // Build the course URL from the course ID.
+    $courseurl = $CFG->wwwroot . '/course/view.php?id=' . $instance->course;
+
+    // Construct the actor array with the hashed mbox and account details.
+    $actorArray = [
+        'objectType'   => 'Agent',
+        'mbox_sha1sum' => $hash,
+        'account'      => [
+            'homePage' => $courseurl,
+            'name'     => $user->username
+        ]
+    ];
+
+    // Return a new TinCan\Agent object using the actor array.
+    return new \TinCan\Agent($actorArray);
 }
 
 
