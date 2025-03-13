@@ -32,6 +32,7 @@ $string['tincanlaunchviewfirstlaunched'] = 'Проект был начат';
 $string['tincanlaunchviewlastlaunched'] = 'Последний запущенный';
 $string['tincanlaunchviewlaunchlinkheader'] = 'Запуск ссылка';
 $string['tincanlaunchviewlaunchlink'] = 'Запуск';
+$string['modulenameplural'] = 'tincanlaunch';
 
 $string['tincanlaunch_completed'] = 'Опыт завершена!';
 $string['tincanlaunch_progress'] = 'Попытка продолжается.';

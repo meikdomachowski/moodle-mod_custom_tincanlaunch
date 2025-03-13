@@ -32,7 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'xApi Tincan Launch - CUSTOM';
 $string['pluginadministration'] = 'xApi Tincan Launch - CUSTOM Verwaltung';
 $string['modulename'] = 'xApi Tincan Launch - CUSTOM';
-$string['modulenameplural'] = 'xApi Tincan Launch - CUSTOM-Aktivitäten';
+$string['modulenameplural'] = 'tincanlaunch';
 $string['modulename_help'] = 'Ein Plugin für Moodle, das den Start von xAPI (TinCan) Inhalten ermöglicht, die an ein separates LRS gesendet werden.
 Fork: https://github.com/meikdomachowski/moodle-mod_custom_tincanlaunch';
 

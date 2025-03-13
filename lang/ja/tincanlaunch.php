@@ -32,6 +32,7 @@ $string['tincanlaunchviewfirstlaunched'] = '最初に起動';
 $string['tincanlaunchviewlastlaunched'] = '最後 打ち上げ';
 $string['tincanlaunchviewlaunchlinkheader'] = '起動リンク';
 $string['tincanlaunchviewlaunchlink'] = '打ち上げ';
+$string['modulenameplural'] = 'tincanlaunch';
 
 $string['tincanlaunch_completed'] = '完全な体験！';
 $string['tincanlaunch_progress'] = '進行中の試み';

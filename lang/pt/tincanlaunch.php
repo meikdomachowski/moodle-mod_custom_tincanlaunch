@@ -29,7 +29,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['modulename'] = 'Tin Can Launch Link';
-$string['modulenameplural'] = 'Tin Can Launch Links';
+$string['modulenameplural'] = 'tincanlaunch';
 $string['modulename_help'] = 'Um plugin para Moodle que permite lançar o Tin Can (xAPI) e o conteúdo então é rastreado pelo LRS.';
 
 // Iniciar configuração padrão LRS.

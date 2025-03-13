@@ -32,6 +32,7 @@ $string['tincanlaunchviewfirstlaunched'] = 'İlk başlattı';
 $string['tincanlaunchviewlastlaunched'] = 'Son başlattı';
 $string['tincanlaunchviewlaunchlinkheader'] = 'Lansmanı bağlantı';
 $string['tincanlaunchviewlaunchlink'] = 'Başlatmak';
+$string['modulenameplural'] = 'tincanlaunch';
 
 $string['tincanlaunch_completed'] = 'Deneyim tamamlandı!';
 $string['tincanlaunch_progress'] = 'Devam Denemesi';

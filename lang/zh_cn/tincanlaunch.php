@@ -32,6 +32,7 @@ $string['tincanlaunchviewfirstlaunched'] = '首次推出';
 $string['tincanlaunchviewlastlaunched'] = '最後 推出';
 $string['tincanlaunchviewlaunchlinkheader'] = '起動リンク';
 $string['tincanlaunchviewlaunchlink'] = '發射';
+$string['modulenameplural'] = 'tincanlaunch';
 
 $string['tincanlaunch_completed'] = '體驗完整的！';
 $string['tincanlaunch_progress'] = '嘗試進行中';

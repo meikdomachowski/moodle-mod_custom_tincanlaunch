@@ -32,6 +32,7 @@ $string['tincanlaunchviewfirstlaunched'] = "D'abord lancé";
 $string['tincanlaunchviewlastlaunched'] = 'Dernier lancé';
 $string['tincanlaunchviewlaunchlinkheader'] = 'lien de lancement';
 $string['tincanlaunchviewlaunchlink'] = 'Lancement';
+$string['modulenameplural'] = 'tincanlaunch';
 
 $string['tincanlaunch_completed'] = 'Expérience complète!';
 $string['tincanlaunch_progress'] = 'Tentative en cours';
