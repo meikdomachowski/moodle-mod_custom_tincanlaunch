@@ -627,41 +627,69 @@ function tincanlaunch_get_statements($url, $basiclogin, $basicpass, $version, $a
 /**
  * Build a TinCan Actor based on the current user.
  *
- * @param object $instance tincanlaunch instance (expects $instance->course to contain the course ID)
+ * The actor is identified using the account property, which carries a composite URL
+ * that uniquely identifies the activity. Here, account.homePage is set to a concatenation
+ * of the Moodle course URL and the tincan activity (launch) URL, and account.name is set
+ * to the hashed user identifier. This composite URL ensures that progress is tracked separately
+ * for each activity.
+ *
+ * @param object|string $instance tincanlaunch instance (if an object, expects $instance->id and optionally $instance->course)
  * @param object $user (optional) If not provided, $USER is used.
- * @return TinCan\Agent Actor with mbox_sha1sum and account.homePage set to the Moodle course URL
+ * @return TinCan\Agent Actor with account containing the composite URL and hashed user identifier.
  */
 function tincanlaunch_getactor($instance, $user = false) {
-    global $USER, $CFG;
-
+    global $USER, $course, $CFG, $DB;
+    
     // Use the current logged-in user if no user is provided.
-    if ($user == false) {
+    if ($user === false) {
         $user = $USER;
     }
-
-    // Create a unique identifier using the user's email if available; otherwise, use the username.
-    if (!empty($user->email)) {
-        $uniqueid = 'mailto:' . $user->email; 
-    } else {
-        $uniqueid = $user->username;
+    
+    // Ensure that the global $course is defined.
+    if (!isset($course) || empty($course->id)) {
+        // If $instance is an object and contains a course property, try to load the course.
+        if (is_object($instance) && isset($instance->course) && !empty($instance->course)) {
+            $course = get_course($instance->course);
+        } else {
+            throw new coding_exception('Course is not defined.');
+        }
     }
-
+    
+    // Create a unique identifier using the user's email if available; otherwise, use the username.
+    $uniqueid = !empty($user->email) ? 'mailto:' . $user->email : $user->username;
+    
     // Generate the SHA1 hash of the unique identifier.
-    $hash = sha1($uniqueid);
-
-    // Build the course URL from the course ID.
-    $courseurl = $CFG->wwwroot . '/course/view.php?id=' . $instance->course;
-
-    // Construct the actor array with the hashed mbox and account details.
+    $hash = hash("sha256", $uniqueid);
+    
+    // Build the Moodle course URL.
+    $courseurl = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+    
+    // Determine the tincanlaunch instance id.
+    if (is_object($instance) && isset($instance->id)) {
+        $instanceid = $instance->id;
+    } else {
+        $instanceid = $instance;
+    }
+    
+    // Retrieve the course module record for this tincanlaunch instance.
+    $cm = get_coursemodule_from_instance('tincanlaunch', $instanceid, $course->id, false, MUST_EXIST);
+    
+    // Build the tincan activity (launch) URL using the course module id.
+    $activityurl = $CFG->wwwroot . '/mod/tincanlaunch/view.php?id=' . $cm->id;
+    
+    // Compose the composite homepage as "courseURL;activityURL".
+    $compositeHomepage = $courseurl . ';' . $activityurl;
+    
+    // Construct the actor array.
     $actorArray = [
         'objectType'   => 'Agent',
         'mbox_sha1sum' => $hash,
         'account'      => [
-            'homePage' => $courseurl,
-            'name'     => $user->username
+            'homePage' => $compositeHomepage,
+            'name'     => $hash
         ]
     ];
-
+    
     // Return a new TinCan\Agent object using the actor array.
     return new \TinCan\Agent($actorArray);
 }
