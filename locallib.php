@@ -30,86 +30,109 @@ require_once("$CFG->dirroot/mod/tincanlaunch/lib.php");
 
 /**
  * Send a statement that the activity was launched.
- * This is useful for debugging - if the 'launched' statement is present in the LRS, you know the activity was at least launched.
  *
- * @param string/UUID $registrationid The Tin Can Registration UUID associated with the launch.
- * @return TinCan LRS Response
+ * This function creates a "launched" statement for debugging purposes,
+ * including fileName from the actual uploaded ZIP.
+ *
+ * @param string $registrationid The Tin Can Registration UUID associated with the launch.
+ * @return TinCan\LRSResponse
  */
 function tincan_launched_statement($registrationid) {
-    global $tincanlaunch, $course, $CFG;
+    global $tincanlaunch, $course, $CFG, $DB;
+
     $tincanlaunchsettings = tincanlaunch_settings($tincanlaunch->id);
 
-    $version = $tincanlaunchsettings['tincanlaunchlrsversion'];
-    $url = $tincanlaunchsettings['tincanlaunchlrsendpoint'];
+    $version    = $tincanlaunchsettings['tincanlaunchlrsversion'];
+    $url        = $tincanlaunchsettings['tincanlaunchlrsendpoint'];
     $basiclogin = $tincanlaunchsettings['tincanlaunchlrslogin'];
-    $basicpass = $tincanlaunchsettings['tincanlaunchlrspass'];
+    $basicpass  = $tincanlaunchsettings['tincanlaunchlrspass'];
 
-    $tincanphputil = new \TinCan\Util();
-    $statementid = $tincanphputil->getUUID();
-
+    // Create a new LRS client.
     $lrs = new \TinCan\RemoteLRS($url, $version, $basiclogin, $basicpass);
 
-    $parentdefinition = array();
-    if (isset($course->summary) && $course->summary !== "") {
-        $parentdefinition["description"] = array(
-            "en-US" => $course->summary
-        );
+    // Build the course URL.
+    $courseurl = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+
+    // Retrieve the course module for the tincanlaunch instance.
+    $cm = get_coursemodule_from_instance('tincanlaunch', $tincanlaunch->id, $course->id, false, MUST_EXIST);
+    $context = context_module::instance($cm->id);
+
+    // Build the direct launch URL.
+    $launchurl = $CFG->wwwroot . '/mod/tincanlaunch/view.php?id=' . $cm->id;
+
+    // -------------------------------------------------------------------------
+    // 1) Retrieve the uploaded ZIP filename from Moodle's file storage.
+    // -------------------------------------------------------------------------
+    $fs = get_file_storage();
+    $files = $fs->get_area_files($context->id, 'mod_tincanlaunch', 'package', 0, '', false);
+
+    // Default to a fallback name if none found.
+    $filename = 'fallback.zip';
+
+    if (!empty($files)) {
+        foreach ($files as $file) {
+            // We only want an actual file, not a directory placeholder.
+            if (!$file->is_directory()) {
+                $filename = $file->get_filename();
+                break;
+            }
+        }
     }
 
-    if (isset($course->fullname) && $course->fullname !== "") {
-        $parentdefinition["name"] = array(
-            "en-US" => $course->fullname
-        );
+    $launchName = !empty($cm->name) ? $cm->name : 'Unnamed';
+
+    // (Optional) If the course has a summary or name, build a parent definition:
+    $parentdefinition = [];
+    if (!empty($course->summary)) {
+        $parentdefinition['description'] = ['en-US' => $course->summary];
+    }
+    if (!empty($course->fullname)) {
+        $parentdefinition['name'] = ['en-US' => $course->fullname];
     }
 
-    $statement = new \TinCan\Statement(
-        array(
-            'id' => $statementid,
-            'actor' => tincanlaunch_getactor($tincanlaunch->id),
-            'verb' => array(
-                'id' => 'http://adlnet.gov/expapi/verbs/launched',
-                'display' => array(
-                    'en-US' => 'launched'
-                )
-            ),
+    // -------------------------------------------------------------------------
+    // 2) Build the context extensions with fileName (and optional activityName).
+    // -------------------------------------------------------------------------
+    $contextExtensions = [
+        'https://moodle.org/xapi/extensions/courseUrl'   => $courseurl,
+        'https://moodle.org/xapi/extensions/launchUrl'   => $launchurl,
+        'https://moodle.org/xapi/extensions/launchName' => $launchName,
+        'https://moodle.org/xapi/extensions/fileName'    => $filename
+    ];
 
-            'object' => array(
-                'id' => $tincanlaunch->tincanactivityid,
-                'objectType' => "Activity"
-            ),
+    // -------------------------------------------------------------------------
+    // 3) Construct the “launched” statement.
+    // -------------------------------------------------------------------------
+    $statementid = (new \TinCan\Util())->getUUID();
+    $statement = new \TinCan\Statement([
+        'id'    => $statementid,
+        'actor' => tincanlaunch_getactor($tincanlaunch->id), // typically uses email or mbox_sha1sum
+        'verb'  => [
+            'id'      => 'http://adlnet.gov/expapi/verbs/launched',
+            'display' => ['en-US' => 'launched']
+        ],
+        'object' => [
+            'id'         => $tincanlaunch->tincanactivityid,
+            'objectType' => 'Activity'
+        ],
+        'context' => [
+            'registration'      => $registrationid,
+            'contextActivities' => [
+                'parent' => [
+                    [
+                        'id'         => $courseurl,
+                        'objectType' => 'Activity',
+                        'definition' => $parentdefinition
+                    ]
+                ]
+            ],
+            'extensions' => $contextExtensions,
+            'language'   => tincanlaunch_get_moodle_language()
+        ],
+        'timestamp' => date(DATE_ATOM)
+    ]);
 
-            "context" => array(
-                "registration" => $registrationid,
-                "contextActivities" => array(
-                    "parent" => array(
-                        array(
-                            "id" => $CFG->wwwroot . '/course/view.php?id=' . $course->id,
-                            "objectType" => "Activity",
-                            "definition" => $parentdefinition
-                        )
-                    ),
-                    "grouping"  => array(
-                        array(
-                            "id" => $CFG->wwwroot,
-                            "objectType" => "Activity"
-                        )
-                    ),
-                    "category"  => array(
-                        array(
-                            "id" => "https://moodle.org",
-                            "objectType" => "Activity",
-                            "definition" => array(
-                                "type" => "http://id.tincanapi.com/activitytype/source"
-                            )
-                        )
-                    )
-                ),
-                "language" => tincanlaunch_get_moodle_language()
-            ),
-            "timestamp" => date(DATE_ATOM)
-        )
-    );
-
+    // 4) Send statement to LRS.
     $response = $lrs->saveStatement($statement);
     return $response;
 }
