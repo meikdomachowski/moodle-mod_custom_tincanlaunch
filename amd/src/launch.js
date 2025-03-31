@@ -13,21 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Handles display of the launch attempt table (registrations).
- *
- * @package
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author    David Pesce  <david.pesce@exputo.com>
- * @module    mod_tincanlaunch/launch
- */
-
 import $ from 'jquery';
 import * as Str from 'core/str';
 
 let id = '';
 let cid = '';
-let simplifiedlaunch = false;
+// simplifiedlaunch is always set to true regardless of any settings.
+let simplifiedlaunch = true;
 
 let SELECTORS = {
     ATTEMPT_PROGRESS: '#tincanlaunch_attemptprogress',
@@ -47,54 +39,18 @@ let SELECTORS = {
 };
 
 export const init = (courseid) => {
-
-    // Retrieve id and n URL parameters
+    // Retrieve URL parameters
     let urlparams = new URLSearchParams(window.location.search);
     id = urlparams.get('id');
     cid = courseid;
 
-    // This is a simplified navigation launch
-    if ($(SELECTORS.SIMPLIFIED).length) {
-        simplifiedlaunch = true;
-        let simplifiedid = $(SELECTORS.SIMPLIFIED_LINK).attr('id').substring(28);
-        launchExperience(simplifiedid);
-    } else {
-        // Iterate over existing registrations and add necessary values.
-        $(SELECTORS.REATTEMPT).each(function() {
-            let registrationid = $(this).attr('id').substring(23);
+    let simplifiedid = $(SELECTORS.SIMPLIFIED_LINK).attr('id').substring(28);
+    launchExperience(simplifiedid);
 
-            // Listen for keyUp event.
-            $(this).on("keyup", function(e) {
-                keyTest(e.key, registrationid);
-            });
-
-            // Listen for click event.
-            $(this).on("click", function() {
-                launchExperience(registrationid);
-            });
-
-            // Add tabindex and cursor.
-            $(this).attr('tabindex', '0');
-            $(this).attr('class', 'btn btn-primary');
-        });
-
-        // Add details to new attempt link.
-        let newregistrationid = $(SELECTORS.NEW_ATTEMPT_LINK).attr('id').substring(28);
-        $(SELECTORS.NEW_ATTEMPT_LINK).attr('tabindex', '0');
-
-        $(SELECTORS.NEW_ATTEMPT_LINK).on("click", function() {
-            launchExperience(newregistrationid);
-        });
-
-        $(SELECTORS.NEW_ATTEMPT_LINK).on("keyup", function(e) {
-            keyTest(e.key, newregistrationid);
-        });
-    }
-
-    // Periodically check completion
+    // Periodically check for completion every 30 seconds.
     setInterval(function() {
         $(SELECTORS.COMPLETION_CHECK).load('completion_check.php?id=' + id);
-    }, 30000); // TODO: make this interval a configuration setting.
+    }, 30000);
 };
 
 const keyTest = (keycode, registrationid) => {
@@ -104,64 +60,49 @@ const keyTest = (keycode, registrationid) => {
 };
 
 const launchExperience = (registrationid) => {
-    // Add status para.
+    // Append status paragraph.
     let statuspara = $("<p></p>").attr("id", "tincanlaunch_status_para");
 
-    // Add completion span.
+    // Append completion span.
     let completionspan = $("<span>").attr("id", "tincanlaunch_completioncheck");
     $(SELECTORS.STATUSDIV).append(statuspara, completionspan);
 
-    const spawnedWindow = window.open('launch.php?launchform_registration=' + registrationid + '&id=' + id);
+    // Instead of opening in a new tab, navigate in the same tab to the test page.
+    window.location.href = 'launch.php?launchform_registration=' + registrationid + '&id=' + id;
 
-    // Check every second to see if the spawned window was closed.
-    const checkWindow = setInterval(() => {
-        if (spawnedWindow.closed) {
-            window.console.log('xAPI content window was closed.');
-            clearInterval(checkWindow); // Stop checking for window closure
-
-            // Perform a final completion check.
-            $(SELECTORS.COMPLETION_CHECK).load('completion_check.php?id=' + id);
-
-            // Redirect to the course page.
-            if (simplifiedlaunch) {
-                window.location.href = "/course/view.php?id=" + cid;
-            } else {
-                window.location.href = "view.php?id=" + id;
-            }
-        }
-    }, 1000);
+    // Since we're navigating in the same tab, monitoring window closure is unnecessary.
 
     let stringsToRetrieve = [
-        {
-            key: 'tincanlaunch_progress',
-            component: 'tincanlaunch'
-        },
-        {
-            key: 'returntocourse',
-            component: 'tincanlaunch'
-        },
-        {
-            key: 'returntoregistrations',
-            component: 'tincanlaunch'
-        }
+      {
+        key: 'tincanlaunch_progress',
+        component: 'tincanlaunch'
+      },
+      {
+        key: 'returntocourse',
+        component: 'tincanlaunch'
+      },
+      {
+        key: 'returntoregistrations',
+        component: 'tincanlaunch'
+      }
     ];
 
     $(SELECTORS.NEW_ATTEMPT).remove();
     $(SELECTORS.ATTEMPT_TABLE).remove();
 
     Str.get_strings(stringsToRetrieve)
-        .done(function(s) {
-            // Attempt in progress.
-            $(SELECTORS.STATUSPARA).text(s[0]);
+      .done(function(s) {
+        // Display "Attempt in progress".
+        $(SELECTORS.STATUSPARA).text(s[0]);
 
-            // Return to course or registrations table.
-            let exitpara = $("<p></p>").attr("id", SELECTORS.EXIT);
-            if (simplifiedlaunch) {
-                exitpara.html("<a href='/course/view.php?id=" + cid + "'>" + s[1] + "</a>");
-            } else {
-                exitpara.html("<a href='/course/view.php?id=" + cid + "'>" + s[2] + "</a>");
-            }
+        // Provide a link to return to the course or registrations table.
+        let exitpara = $("<p></p>").attr("id", SELECTORS.EXIT);
+        if (simplifiedlaunch) {
+          exitpara.html("<a href='/course/view.php?id=" + cid + "'>" + s[1] + "</a>");
+        } else {
+          exitpara.html("<a href='/course/view.php?id=" + cid + "'>" + s[2] + "</a>");
+        }
 
-            $(SELECTORS.STATUSPARA).after(exitpara);
+        $(SELECTORS.STATUSPARA).after(exitpara);
     });
 };

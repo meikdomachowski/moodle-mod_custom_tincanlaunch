@@ -21,14 +21,12 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
 
 /**
- * The main tincanlaunch configuration form
- *
- * It uses the standard core Moodle formslib. For more info about them, please
- * visit: http://docs.moodle.org/en/Development:lib/formslib.php
+ * Handles display of the launch attempt table (registrations).
  *
  * @package mod_tincanlaunch
- * @copyright  2013 Andrew Downes
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    David Pesce  <david.pesce@exputo.com>
+ * @module    mod_tincanlaunch/launch
  */
 class mod_tincanlaunch_mod_form extends moodleform_mod {
 
@@ -44,7 +42,7 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
 
         $mform = $this->_form;
 
-        // Adding the "general" fieldset, where all the common settings are showed.
+        // Adding the "general" fieldset, where all the common settings are shown.
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         // Adding the standard "name" field.
@@ -93,8 +91,7 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
         // Start advanced settings.
         $mform->addElement('header', 'lrsheading', get_string('lrsheading', 'tincanlaunch'));
 
-        $mform->addElement('static', 'description', get_string('lrsdefaults', 'tincanlaunch'), get_string('lrssettingdescription',
-        'tincanlaunch'));
+        $mform->addElement('static', 'description', get_string('lrsdefaults', 'tincanlaunch'), get_string('lrssettingdescription', 'tincanlaunch'));
 
         // Override default LRS settings.
         $mform->addElement('advcheckbox', 'overridedefaults', get_string('overridedefaults', 'tincanlaunch'));
@@ -166,20 +163,6 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
         $mform->setDefault('tincanlaunchuseactoremail', $cfgtincanlaunch->tincanlaunchuseactoremail);
         $mform->disabledIf('tincanlaunchuseactoremail', 'overridedefaults');
         // End advanced settings.
-
-        // Apearance settings.
-        $mform->addElement('header', 'appearanceheading', get_string('appearanceheading', 'tincanlaunch'));
-
-        // Simplified launch.
-        $mform->addElement('advcheckbox', 'tincansimplelaunchnav', get_string('tincansimplelaunchnav', 'tincanlaunch'));
-        $mform->setDefault('tincansimplelaunchnav', 0);
-        $mform->addHelpButton('tincansimplelaunchnav', 'tincansimplelaunchnav', 'tincanlaunch');
-
-        // Allow multiple registrations.
-        $mform->addElement('advcheckbox', 'tincanmultipleregs', get_string('tincanmultipleregs', 'tincanlaunch'));
-        $mform->setDefault('tincanmultipleregs', 1);
-        $mform->hideIf('tincanmultipleregs', 'tincansimplelaunchnav', 'checked');
-        $mform->addHelpButton('tincanmultipleregs', 'tincanmultipleregs', 'tincanlaunch');
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
@@ -275,7 +258,6 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
                 $defaultvalues['tincanlaunchlrsduration'] = $tincanlaunchlrs->lrsduration;
                 $defaultvalues['tincanlaunchlrslogin'] = $tincanlaunchlrs->lrslogin;
                 $defaultvalues['tincanlaunchlrspass'] = $tincanlaunchlrs->lrspass;
-
             }
         }
 
@@ -323,10 +305,9 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
             }
         }
 
-        // If simplified launch is enabled, we must disable multiple registrations.
-        if ($data->tincansimplelaunchnav == 1) {
-            $data->tincanmultipleregs = 0;
-        }
+        // Since we always use simple registration, simplified launch is always enabled and multiple registrations are disabled.
+        $data->tincansimplelaunchnav = 1;
+        $data->tincanmultipleregs = 0;
     }
 
     /**
@@ -349,7 +330,7 @@ class mod_tincanlaunch_mod_form extends moodleform_mod {
                 array('subdirs' => 0, 'maxfiles' => 1)
             );
 
-            // Get file from users draft area.
+            // Get file from user's draft area.
             $usercontext = context_user::instance($USER->id);
             $fs = get_file_storage();
             $files = $fs->get_area_files($usercontext->id, 'user', 'draft', $draftitemid, 'id', false);

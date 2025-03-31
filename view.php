@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Displays an instance of tincanlaunch.
- *
- * @package mod_tincanlaunch
- * @copyright  2013 Andrew Downes
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_tincanlaunch;
 
 require_once("../../config.php");
@@ -43,6 +35,9 @@ $PAGE->set_url('/mod/tincanlaunch/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($tincanlaunch->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
+// Force minimal layout so that Moodle bars (navigation, side blocks, header, etc.) are not displayed.
+$PAGE->set_pagelayout('embedded');
+
 echo $OUTPUT->header();
 
 // Display the completion requirements.
@@ -102,7 +97,7 @@ if ($statuscode != 200 && $statuscode != 404) { // Some error other than 404.
             'D, d M Y H:i:s'
         );
 
-        // For single registration, select the the most recent.
+        // For single registration, select the most recent.
         if ($tincanlaunch->tincanmultipleregs == 0) {
             $simplifiedregid = $key;
             $registrationdatafromlrs = array($registrationdatafromlrs[$key]);
@@ -134,7 +129,7 @@ if ($statuscode != 200 && $statuscode != 404) { // Some error other than 404.
         // Utilize the simplified registration ID.
         echo "<div id=tincanlaunch_simplified><a id=tincanlaunch_simplifiedlink-" . $simplifiedregid . ">" . "</a></div>";
     }
-} else { // No registration data on LRS - LRS will return 404 status - {"errorId": "0c621409...","message": "No State found"}.
+} else { // No registration data on LRS - LRS will return 404 status.
     if ($tincanlaunch->tincansimplelaunchnav == 1) {
         echo "<div id=tincanlaunch_simplified><a id=tincanlaunch_simplifiedlink-" . $newregistrationid . ">" . "</a></div>";
     } else {
